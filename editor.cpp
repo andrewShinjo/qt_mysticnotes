@@ -33,7 +33,8 @@ void Editor::keyPressEvent(QKeyEvent *event)
             QString currentBlockText = this->textCursor().block().text();
             deleteLine();
             QTextEdit::keyPressEvent(event);
-            gotoPreviousLine();
+            this->textCursor().deletePreviousChar();
+            // gotoPreviousLine();
             this->textCursor().insertText(currentBlockText);
 
 
