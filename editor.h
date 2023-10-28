@@ -22,6 +22,7 @@ protected:
 private:
     QTextCursor* cursor;
     QTextListFormat* text_list_format;
+    void changeFontSizeOfEntireLine(int fontSize);
     void deleteLine();
     void gotoPreviousLine();
     bool isCursorAtStartOfLine(QTextCursor cursor);

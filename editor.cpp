@@ -2,9 +2,16 @@
 
 Editor::Editor(QWidget *parent) : QTextEdit(parent)
 {
-    QTextBlockFormat blockFormat = textCursor().blockFormat();
-    blockFormat.setLeftMargin(10);
-    textCursor().setBlockFormat(blockFormat);
+    document()->setIndentWidth(20);
+    setTabStopDistance(20);
+
+    QTextCursor cursor = textCursor();
+    QTextCharFormat format;
+
+    QFont font;
+    font.setPointSize(12);
+
+    setFont(font);
 }
 
 void Editor::keyPressEvent(QKeyEvent *event)
@@ -16,20 +23,68 @@ void Editor::keyPressEvent(QKeyEvent *event)
     {
         if(keyPressed == Qt::Key_Space)
         {
-            qDebug() << "Spaced pressed.";
+            qDebug() << "Key pressed: Space";
             QString text = this->textCursor().block().text();
 
             if(text.compare("-") == 0)
             {
-                QTextBlockFormat blockFormat = textCursor().blockFormat();
-                blockFormat.setLeftMargin(20);
-                textCursor().setBlockFormat(blockFormat);
                 deleteLine();
                 QTextListFormat listFormat;
                 listFormat.setStyle(QTextListFormat::ListDisc);
-                listFormat.setIndent(0);
                 this->textCursor().insertList(listFormat);
             }
+            else if(text.compare("#") == 0)
+            {
+                qDebug() << "H1";
+
+                QTextEdit::keyPressEvent(event);
+                changeFontSizeOfEntireLine(32);
+            }
+            else if(text.compare("##") == 0)
+            {
+                qDebug() << "H2";
+
+                QTextEdit::keyPressEvent(event);
+                changeFontSizeOfEntireLine(28);
+            }
+            else if(text.compare("###") == 0)
+            {
+                qDebug() << "H3";
+
+                QTextEdit::keyPressEvent(event);
+                changeFontSizeOfEntireLine(25);
+            }
+            else if(text.compare("####") == 0)
+            {
+                qDebug() << "H4";
+
+                QTextEdit::keyPressEvent(event);
+                changeFontSizeOfEntireLine(22);
+            }
+            else if(text.compare("#####") == 0)
+            {
+                qDebug() << "H5";
+
+                QTextEdit::keyPressEvent(event);
+                changeFontSizeOfEntireLine(18);
+            }
+            else if(text.compare("######") == 0)
+            {
+                qDebug() << "H6";
+
+                QTextEdit::keyPressEvent(event);
+                changeFontSizeOfEntireLine(15);
+            }
+            else
+            {
+                QTextEdit::keyPressEvent(event);
+            }
+        }
+        else if(keyPressed == Qt::Key_Return || keyPressed == Qt::Key_Enter)
+        {
+            QTextCharFormat format;
+            format.setFontPointSize(12);
+            textCursor().insertText("\n", format);
         }
         else
         {
@@ -41,15 +96,7 @@ void Editor::keyPressEvent(QKeyEvent *event)
         if(keyPressed == Qt::Key_Return || keyPressed == Qt::Key_Enter)
         {
             qDebug() << "Enter or return key pressed.";
-
-            if(isLineEmpty(this->textCursor()))
-            {
-                this->textCursor().insertText("\n");
-            }
-            else if(!isLineEmpty(this->textCursor()))
-            {
-                QTextEdit::keyPressEvent(event);
-            }
+            QTextEdit::keyPressEvent(event);
         }
         else if(keyPressed == Qt::Key_Backspace)
         {
@@ -83,9 +130,44 @@ void Editor::keyPressEvent(QKeyEvent *event)
                 QTextEdit::keyPressEvent(event);
             }
         }
+        else if(keyPressed == Qt::Key_Space)
+        {
+
+        }
         else if(keyPressed == Qt::Key_Tab)
         {
+            /** Situation: If tab is pressed when the cursor is on a list:
+             *  if the current bullet point is the top of the list, then do nothing
+             *
+             *
+             **/
+
             qDebug() << "Tab pressed.";
+
+            int currentIndent, previousIndent;
+
+            currentIndent = textCursor().currentList()->format().indent();
+
+            QTextCursor temp = textCursor();
+            temp.movePosition(QTextCursor::PreviousBlock);
+            QTextList* previousList = temp.currentList();
+
+            if(previousList)
+            {
+                QTextListFormat listFormat = previousList->format();
+                previousIndent = listFormat.indent();
+            }
+            else
+            {
+                return;
+            }
+
+            if(currentIndent == previousIndent)
+            {
+                QTextListFormat listFormat = textCursor().currentList()->format();
+                listFormat.setIndent(currentIndent + 1);
+                textCursor().currentList()->setFormat(listFormat);
+            }
         }
         else
         {
@@ -128,4 +210,13 @@ bool Editor::isLineEmpty(QTextCursor cursor)
     cursor.movePosition(QTextCursor::StartOfLine);
     cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
     return cursor.selectedText().trimmed().isEmpty();
+}
+
+void Editor::changeFontSizeOfEntireLine(int fontSize)
+{
+    QTextCursor cursor = textCursor();
+    QTextCharFormat format;
+    format.setFontPointSize(fontSize);
+    cursor.select(QTextCursor::LineUnderCursor);
+    cursor.mergeCharFormat(format);
 }
